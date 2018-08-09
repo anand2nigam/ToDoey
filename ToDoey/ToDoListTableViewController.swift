@@ -12,8 +12,14 @@ class ToDoListTableViewController: UITableViewController {
 
     var itemArray = [ "Find Mike" , "Buy Eggs", "Finish Emails"]
     
+    let defaults = UserDefaults.standard
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        if let items = defaults.array(forKey: "ToDoeyListArray") as? [String] {
+            itemArray = items
+        }
 
         // Uncomment the following line to preserve selection between presentations
         // self.clearsSelectionOnViewWillAppear = false
@@ -81,7 +87,10 @@ class ToDoListTableViewController: UITableViewController {
         let action = UIAlertAction(title: "Add Item", style: .default) { (alertAction) in
             print("Success")
             print(textField.text!)
-            self.itemArray.append(textField.text!)
+            self.itemArray.append(textField.text ?? "New Item")
+            
+            self.defaults.set(self.itemArray, forKey: "ToDoeyListArray")
+            
             self.tableView.reloadData()
         }
         
