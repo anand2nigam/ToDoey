@@ -10,7 +10,7 @@ import UIKit
 
 class ToDoListTableViewController: UITableViewController {
 
-    let itemArray = [ "Find Mike" , "Buy Eggs", "Finish Emails"]
+    var itemArray = [ "Find Mike" , "Buy Eggs", "Finish Emails"]
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -66,6 +66,42 @@ class ToDoListTableViewController: UITableViewController {
         // To deselect the row after its selection
         tableView.deselectRow(at: indexPath, animated: true)
     }
+    
+    
+    // MARK:- Add new items
+    
+    @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
+        
+        var textField = UITextField()
+        
+        // To present an alert to the user
+        let alert = UIAlertController(title: "Add New ToDoey Item", message: "", preferredStyle: .alert)
+        
+        // To do something with the alert (adding a button in order to perform the task for which the alert is being presented)
+        let action = UIAlertAction(title: "Add Item", style: .default) { (alertAction) in
+            print("Success")
+            print(textField.text!)
+            self.itemArray.append(textField.text!)
+            self.tableView.reloadData()
+        }
+        
+        // To cancel the alert without doing anything about it
+        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
+        
+        // Adding a textfield in order to add text for the new ToDoey item
+        alert.addTextField { (alertTextField) in
+            alertTextField.placeholder = "Create New ToDoey Item"
+            textField = alertTextField
+        }
+        
+        // Adding actions to the alert
+        alert.addAction(action)
+        alert.addAction(cancelAction)
+        
+        // Presenting alert to the user
+        present(alert, animated: true, completion: nil)
+    }
+    
 
     /*
     // Override to support conditional editing of the table view.
