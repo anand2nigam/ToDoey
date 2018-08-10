@@ -10,16 +10,29 @@ import UIKit
 
 class ToDoListTableViewController: UITableViewController {
 
-    var itemArray = [ "Find Mike" , "Buy Eggs", "Finish Emails"]
+    var itemArray = [ Item ] ()
     
     let defaults = UserDefaults.standard
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        if let items = defaults.array(forKey: "ToDoeyListArray") as? [String] {
+        if let items = defaults.array(forKey: "ToDoeyListArray") as? [Item] {
             itemArray = items
         }
+        
+        let newItem = Item()
+        newItem.title = "Finish Novels"
+        itemArray.append(newItem)
+        
+        let newItem2 = Item()
+        newItem2.title = "FInish Homework"
+        itemArray.append(newItem2)
+        
+        let newItem3 = Item()
+        newItem3.title = "FInish Lunch"
+        itemArray.append(newItem3)
+        
 
         // Uncomment the following line to preserve selection between presentations
         // self.clearsSelectionOnViewWillAppear = false
@@ -44,7 +57,10 @@ class ToDoListTableViewController: UITableViewController {
         // Using a reusable cell to display the cells in the table view
         let cell = tableView.dequeueReusableCell(withIdentifier: "ToDoListItemCell", for: indexPath)
         
-        cell.textLabel?.text = itemArray[indexPath.row]
+        cell.textLabel?.text = itemArray[indexPath.row].title
+        
+        // To put the checkmark and remove it accordingly
+        cell.accessoryType = itemArray[indexPath.row].done == true ? .checkmark : .none
         
         return cell
     }
@@ -56,18 +72,14 @@ class ToDoListTableViewController: UITableViewController {
         print(indexPath.row)
         print(itemArray[indexPath.row])
         
-        // To configure the accessory type of the cell according to the number of times its get selected. One tap to add the  checkmark and another to remove it.
-        if let cell = tableView.cellForRow(at: indexPath) {
-            if cell.accessoryType == .checkmark {
-                cell.accessoryType = .none
-            }
-            else if cell.accessoryType == .none {
-                cell.accessoryType = .checkmark
-            }
+        if itemArray[indexPath.row].done == true {
+            itemArray[indexPath.row].done = false
+        }
+        else {
+            itemArray[indexPath.row].done = true
         }
         
-        // To add an accessory type when the row is selected
-//        tableView.cellForRow(at: indexPath)?.accessoryType = .checkmark
+        tableView.reloadData()
         
         // To deselect the row after its selection
         tableView.deselectRow(at: indexPath, animated: true)
@@ -87,7 +99,10 @@ class ToDoListTableViewController: UITableViewController {
         let action = UIAlertAction(title: "Add Item", style: .default) { (alertAction) in
             print("Success")
             print(textField.text!)
-            self.itemArray.append(textField.text ?? "New Item")
+            
+            let newItem = Item()
+            newItem.title = textField.text ?? "New Item"
+            self.itemArray.append(newItem)
             
             self.defaults.set(self.itemArray, forKey: "ToDoeyListArray")
             
