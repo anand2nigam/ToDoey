@@ -12,27 +12,15 @@ class ToDoListTableViewController: UITableViewController {
 
     var itemArray = [ Item ] ()
     
-    let defaults = UserDefaults.standard
+    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
+
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        if let items = defaults.array(forKey: "ToDoeyListArray") as? [Item] {
-            itemArray = items
-        }
+        print(dataFilePath!)
         
-        let newItem = Item()
-        newItem.title = "Finish Novels"
-        itemArray.append(newItem)
-        
-        let newItem2 = Item()
-        newItem2.title = "FInish Homework"
-        itemArray.append(newItem2)
-        
-        let newItem3 = Item()
-        newItem3.title = "FInish Lunch"
-        itemArray.append(newItem3)
-        
+        loadItems()
 
         // Uncomment the following line to preserve selection between presentations
         // self.clearsSelectionOnViewWillAppear = false
@@ -72,14 +60,9 @@ class ToDoListTableViewController: UITableViewController {
         print(indexPath.row)
         print(itemArray[indexPath.row])
         
-        if itemArray[indexPath.row].done == true {
-            itemArray[indexPath.row].done = false
-        }
-        else {
-            itemArray[indexPath.row].done = true
-        }
+         itemArray[indexPath.row].done = !itemArray[indexPath.row].done
         
-        tableView.reloadData()
+        saveItems()
         
         // To deselect the row after its selection
         tableView.deselectRow(at: indexPath, animated: true)
@@ -104,15 +87,14 @@ class ToDoListTableViewController: UITableViewController {
             newItem.title = textField.text ?? "New Item"
             self.itemArray.append(newItem)
             
-            self.defaults.set(self.itemArray, forKey: "ToDoeyListArray")
+            self.saveItems()
             
-            self.tableView.reloadData()
         }
         
         // To cancel the alert without doing anything about it
         let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
         
-        // Adding a textfield in order to add text for the new ToDoey item
+        // Adding a textfield with the alert in order to add text for the new ToDoey item
         alert.addTextField { (alertTextField) in
             alertTextField.placeholder = "Create New ToDoey Item"
             textField = alertTextField
@@ -126,50 +108,33 @@ class ToDoListTableViewController: UITableViewController {
         present(alert, animated: true, completion: nil)
     }
     
-
-    /*
-    // Override to support conditional editing of the table view.
-    override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
-        // Return false if you do not want the specified item to be editable.
-        return true
+    // MARK:- Data Manipulation Method
+    
+    func saveItems() {
+        let encoder = PropertyListEncoder()
+        
+        do {
+            let data = try encoder.encode(itemArray)
+            try data.write(to: dataFilePath!)
+        } catch {
+            print("Error encoding item array \(error)")
+        }
+        
+        tableView.reloadData()
     }
-    */
-
-    /*
-    // Override to support editing the table view.
-    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
-        if editingStyle == .delete {
-            // Delete the row from the data source
-            tableView.deleteRows(at: [indexPath], with: .fade)
-        } else if editingStyle == .insert {
-            // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
-        }    
+    
+    
+    func loadItems() {
+        if let data = try? Data(contentsOf: dataFilePath!) {
+            let decoder = PropertyListDecoder()
+            do {
+                itemArray = try decoder.decode([Item].self , from: data)
+            } catch {
+                print("Error decoding the data \(error)")
+            }
+        }
     }
-    */
 
-    /*
-    // Override to support rearranging the table view.
-    override func tableView(_ tableView: UITableView, moveRowAt fromIndexPath: IndexPath, to: IndexPath) {
-
-    }
-    */
-
-    /*
-    // Override to support conditional rearranging of the table view.
-    override func tableView(_ tableView: UITableView, canMoveRowAt indexPath: IndexPath) -> Bool {
-        // Return false if you do not want the item to be re-orderable.
-        return true
-    }
-    */
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
-    }
-    */
-
+    
+    
 }
