@@ -7,18 +7,22 @@
 //
 
 import UIKit
+import CoreData
 
 class ToDoListTableViewController: UITableViewController {
 
     var itemArray = [ Item ] ()
     
-    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
+
+    
+     // to grab the viewContext of the app delegate class
+    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
 
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        print(dataFilePath!)
+
         
         loadItems()
 
@@ -26,7 +30,7 @@ class ToDoListTableViewController: UITableViewController {
         // self.clearsSelectionOnViewWillAppear = false
 
         // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
-        // self.navigationItem.rightBarButtonItem = self.editButtonItem
+         self.navigationItem.leftBarButtonItem = self.editButtonItem
     }
 
     override func didReceiveMemoryWarning() {
@@ -80,11 +84,16 @@ class ToDoListTableViewController: UITableViewController {
         
         // To do something with the alert (adding a button in order to perform the task for which the alert is being presented)
         let action = UIAlertAction(title: "Add Item", style: .default) { (alertAction) in
+            
+            // what will happen when the user clicks the add item button
+            
             print("Success")
             print(textField.text!)
+        
             
-            let newItem = Item()
+            let newItem = Item(context: self.context)
             newItem.title = textField.text ?? "New Item"
+            newItem.done = false
             self.itemArray.append(newItem)
             
             self.saveItems()
@@ -108,16 +117,31 @@ class ToDoListTableViewController: UITableViewController {
         present(alert, animated: true, completion: nil)
     }
     
+    // Deletion of Data from Database and tableView
+    
+    override func tableView(_ tableView: UITableView, editingStyleForRowAt indexPath: IndexPath) -> UITableViewCellEditingStyle {
+        return .delete
+    }
+    
+    
+    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
+        if editingStyle == .delete {
+            context.delete(itemArray[indexPath.row])
+            itemArray.remove(at: indexPath.row)
+            tableView.deleteRows(at: [indexPath], with: .automatic)
+            saveItems()
+        }
+    }
+    
+    
     // MARK:- Data Manipulation Method
     
     func saveItems() {
-        let encoder = PropertyListEncoder()
         
         do {
-            let data = try encoder.encode(itemArray)
-            try data.write(to: dataFilePath!)
+           try context.save()
         } catch {
-            print("Error encoding item array \(error)")
+          print("Unable to save the context \(error)")
         }
         
         tableView.reloadData()
@@ -125,15 +149,17 @@ class ToDoListTableViewController: UITableViewController {
     
     
     func loadItems() {
-        if let data = try? Data(contentsOf: dataFilePath!) {
-            let decoder = PropertyListDecoder()
-            do {
-                itemArray = try decoder.decode([Item].self , from: data)
-            } catch {
-                print("Error decoding the data \(error)")
-            }
+        
+        let request: NSFetchRequest<Item> = Item.fetchRequest()
+        
+        do {
+            itemArray = try context.fetch(request)
+        } catch {
+            print("Error in loading data from persistent container \(error)")
         }
+        
     }
+
 
     
     
