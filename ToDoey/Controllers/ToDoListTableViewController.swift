@@ -22,8 +22,6 @@ class ToDoListTableViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-
-        
         loadItems()
 
         // Uncomment the following line to preserve selection between presentations
@@ -117,7 +115,7 @@ class ToDoListTableViewController: UITableViewController {
         present(alert, animated: true, completion: nil)
     }
     
-    // Deletion of Data from Database and tableView
+    // MARK:-  Deletion of Data from Database and tableView
     
     override func tableView(_ tableView: UITableView, editingStyleForRowAt indexPath: IndexPath) -> UITableViewCellEditingStyle {
         return .delete
@@ -147,10 +145,8 @@ class ToDoListTableViewController: UITableViewController {
         tableView.reloadData()
     }
     
-    
-    func loadItems() {
-        
-        let request: NSFetchRequest<Item> = Item.fetchRequest()
+    // method with a default value which can be called with the parameter or without the parameter
+    func loadItems(with request: NSFetchRequest<Item> = Item.fetchRequest()) {
         
         do {
             itemArray = try context.fetch(request)
@@ -158,9 +154,50 @@ class ToDoListTableViewController: UITableViewController {
             print("Error in loading data from persistent container \(error)")
         }
         
+        tableView.reloadData()
     }
 
 
+}
+
+
+// MARK: Search bar Methods
+
+extension ToDoListTableViewController: UISearchBarDelegate {
+    
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        
+        // Request to fetch the Item result from the database
+        let request: NSFetchRequest<Item> = Item.fetchRequest()
+        
+        // to specify how data should be fetched from the database
+        // [cd] is used to make the search case and diacritic insensitive
+        let predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
+        
+        // add query to the request
+        request.predicate = predicate
+        
+        // to sort the data received from database on query accordingly
+        let sortDescriptor = NSSortDescriptor(key: "title", ascending: true)
+        
+        // to add this to the request
+        request.sortDescriptors = [sortDescriptor]
+        
+        loadItems(with: request)
+        
+       
+    }
+    
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        if searchBar.text?.count == 0 {
+            loadItems()
+            
+            DispatchQueue.main.async {
+                 // to remove the cursor from the focus and dismiss the keyboard
+                searchBar.resignFirstResponder()
+            }
+        }
+    }
     
     
 }
