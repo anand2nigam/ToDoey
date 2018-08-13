@@ -40,11 +40,21 @@ class CategoryTableViewController: UITableViewController {
     
     // MARK:- TableView Delegate Methods
     
-
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        performSegue(withIdentifier: "goToItems", sender: self)
+    }
     
     
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        let destiinationVC = segue.destination as! ToDoListTableViewController
+        
+        if let indexPath = tableView.indexPathForSelectedRow {
+            destiinationVC.selectedCategory = categoryArray[indexPath.row]
+        }
+    }
     
-    // MARK:- Add new Items
+    
+    // MARK:- Add new Categories
     
     @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
         
@@ -81,8 +91,37 @@ class CategoryTableViewController: UITableViewController {
         
     }
     
+    // MARK:- Deletion from the Database and the TableView
+    
+    override func tableView(_ tableView: UITableView, editingStyleForRowAt indexPath: IndexPath) -> UITableViewCellEditingStyle {
+        return .delete
+    }
+    
+    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
+        if editingStyle == .delete {
+            
+            // To present an alert before deleting the row from the database and the tableview
+            let alert = UIAlertController(title: "DELETE???", message: "Are you sure you want to delete", preferredStyle: .alert)
+            
+            let deleteAction = UIAlertAction(title: "Delete", style: .default) { (deleteAlertAction) in
+                self.context.delete(self.categoryArray[indexPath.row])
+                self.categoryArray.remove(at: indexPath.row)
+                self.tableView.deleteRows(at: [indexPath], with: .automatic)
+                self.saveCategories()
+            }
+            
+            let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
+
+            alert.addAction(deleteAction)
+            alert.addAction(cancelAction)
+            
+            present(alert, animated: true, completion: nil)
+        }
+    }
+    
     // MARK:- Data Manipulation Methods
     
+    // function to save the data into the database
     func saveCategories() {
         do {
         try context.save()
@@ -92,6 +131,7 @@ class CategoryTableViewController: UITableViewController {
         tableView.reloadData()
     }
     
+    // function to load the data from the database and then reflecting in the tableView
     func loadCategories(with request: NSFetchRequest<Category> = Category.fetchRequest()) {
        
         do {

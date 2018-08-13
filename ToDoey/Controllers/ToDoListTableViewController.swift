@@ -13,7 +13,11 @@ class ToDoListTableViewController: UITableViewController {
 
     var itemArray = [ Item ] ()
     
-
+    var selectedCategory: Category? {
+        didSet {
+            loadItems()
+        }
+    }
     
      // to grab the viewContext of the app delegate class
     let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
@@ -22,7 +26,7 @@ class ToDoListTableViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        loadItems()
+        self.navigationItem.title = (selectedCategory?.name)! + " Items"
 
         // Uncomment the following line to preserve selection between presentations
         // self.clearsSelectionOnViewWillAppear = false
@@ -92,6 +96,7 @@ class ToDoListTableViewController: UITableViewController {
             let newItem = Item(context: self.context)
             newItem.title = textField.text ?? "New Item"
             newItem.done = false
+            newItem.parentCategory = self.selectedCategory
             self.itemArray.append(newItem)
             
             self.saveItems()
@@ -124,10 +129,24 @@ class ToDoListTableViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
-            context.delete(itemArray[indexPath.row])
-            itemArray.remove(at: indexPath.row)
-            tableView.deleteRows(at: [indexPath], with: .automatic)
-            saveItems()
+            
+            let alert = UIAlertController(title: "DELETE ???", message: "Are you sure you want to delete?", preferredStyle: .alert)
+            
+            let deleteAction = UIAlertAction(title: "Delete", style: .default) { (deleteAlertAction) in
+                self.context.delete(self.itemArray[indexPath.row])
+                self.itemArray.remove(at: indexPath.row)
+                self.tableView.deleteRows(at: [indexPath], with: .automatic)
+                self.saveItems()
+            }
+            
+            let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
+            
+            alert.addAction(deleteAction)
+            alert.addAction(cancelAction)
+            
+            present(alert, animated: true, completion: nil)
+            
+          
         }
     }
     
@@ -146,7 +165,15 @@ class ToDoListTableViewController: UITableViewController {
     }
     
     // method with a default value which can be called with the parameter or without the parameter
-    func loadItems(with request: NSFetchRequest<Item> = Item.fetchRequest()) {
+    func loadItems(with request: NSFetchRequest<Item> = Item.fetchRequest(), predicate: NSPredicate? = nil) {
+        
+        let categoryPredicate = NSPredicate(format: "parentCategory.name MATCHES %@", selectedCategory!.name!)
+        
+        if let additionalPredicate = predicate {
+            request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [categoryPredicate , additionalPredicate])
+        } else {
+            request.predicate = categoryPredicate
+        }
         
         do {
             itemArray = try context.fetch(request)
@@ -176,16 +203,13 @@ extension ToDoListTableViewController: UISearchBarDelegate {
         // [cd] is used to make the search case and diacritic insensitive
         let predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
         
-        // add query to the request
-        request.predicate = predicate
-        
         // to sort the data received from database on query accordingly
         let sortDescriptor = NSSortDescriptor(key: "title", ascending: true)
         
         // to add this to the request
         request.sortDescriptors = [sortDescriptor]
         
-        loadItems(with: request)
+        loadItems(with: request, predicate: predicate)
         
        
     }

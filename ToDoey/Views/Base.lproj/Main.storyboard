@@ -48,7 +48,7 @@
             </objects>
             <point key="canvasLocation" x="984" y="107"/>
         </scene>
-        <!--Items-->
+        <!--To Do List Table View Controller-->
         <scene sceneID="Ww2-wp-URe">
             <objects>
                 <tableViewController id="bNq-5s-9Pl" customClass="ToDoListTableViewController" customModule="ToDoey" customModuleProvider="target" sceneMemberID="viewController">
@@ -79,7 +79,7 @@
                             <outlet property="delegate" destination="bNq-5s-9Pl" id="yHA-tW-V4t"/>
                         </connections>
                     </tableView>
-                    <navigationItem key="navigationItem" title="Items" id="xGd-xs-FPr">
+                    <navigationItem key="navigationItem" id="xGd-xs-FPr">
                         <barButtonItem key="rightBarButtonItem" systemItem="add" id="VIw-ko-LoV">
                             <color key="tintColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                             <connections>
