@@ -7,9 +7,11 @@
 //
 
 import UIKit
-import CoreData
+import RealmSwift
 
 class CategoryTableViewController: UITableViewController {
+    
+    let realm = try! Realm()
 
     var categoryArray = [Category]()
     
@@ -18,7 +20,7 @@ class CategoryTableViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        loadCategories()
+   //     loadCategories()
 
     }
 
@@ -64,13 +66,13 @@ class CategoryTableViewController: UITableViewController {
         
         let addAction = UIAlertAction(title: "Add Category", style: .default) { (alertAction) in
           
-            let newCategory = Category(context: self.context)
+            let newCategory = Category()
             
-            newCategory.name = textField.text
+            newCategory.name = textField.text!
             
             self.categoryArray.append(newCategory)
             
-            self.saveCategories()
+            self.save(category: newCategory)
             
         }
         
@@ -97,34 +99,36 @@ class CategoryTableViewController: UITableViewController {
         return .delete
     }
     
-    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
-        if editingStyle == .delete {
-            
-            // To present an alert before deleting the row from the database and the tableview
-            let alert = UIAlertController(title: "DELETE???", message: "Are you sure you want to delete", preferredStyle: .alert)
-            
-            let deleteAction = UIAlertAction(title: "Delete", style: .default) { (deleteAlertAction) in
-                self.context.delete(self.categoryArray[indexPath.row])
-                self.categoryArray.remove(at: indexPath.row)
-                self.tableView.deleteRows(at: [indexPath], with: .automatic)
-                self.saveCategories()
-            }
-            
-            let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
-
-            alert.addAction(deleteAction)
-            alert.addAction(cancelAction)
-            
-            present(alert, animated: true, completion: nil)
-        }
-    }
+//    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
+//        if editingStyle == .delete {
+//            
+//            // To present an alert before deleting the row from the database and the tableview
+//            let alert = UIAlertController(title: "DELETE???", message: "Are you sure you want to delete", preferredStyle: .alert)
+//            
+//            let deleteAction = UIAlertAction(title: "Delete", style: .default) { (deleteAlertAction) in
+//                self.context.delete(self.categoryArray[indexPath.row])
+//                self.categoryArray.remove(at: indexPath.row)
+//                self.tableView.deleteRows(at: [indexPath], with: .automatic)
+//                self.saveCategories()
+//            }
+//            
+//            let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
+//
+//            alert.addAction(deleteAction)
+//            alert.addAction(cancelAction)
+//            
+//            present(alert, animated: true, completion: nil)
+//        }
+//    }
     
     // MARK:- Data Manipulation Methods
     
     // function to save the data into the database
-    func saveCategories() {
+    func save(category : Category) {
         do {
-        try context.save()
+            try realm.write {
+                realm.add(category)
+            }
         } catch {
             print("Error Saving Categories:-  \(error)")
         }
@@ -132,14 +136,14 @@ class CategoryTableViewController: UITableViewController {
     }
     
     // function to load the data from the database and then reflecting in the tableView
-    func loadCategories(with request: NSFetchRequest<Category> = Category.fetchRequest()) {
-       
-        do {
-           categoryArray = try context.fetch(request)
-        } catch {
-            print("Error in loading data from the database:  \(error)")
-        }
-        tableView.reloadData()
-    }
-    
+//    func loadCategories(with request: NSFetchRequest<Category> = Category.fetchRequest()) {
+//
+//        do {
+//           categoryArray = try context.fetch(request)
+//        } catch {
+//            print("Error in loading data from the database:  \(error)")
+//        }
+//        tableView.reloadData()
+//    }
+//
 }
