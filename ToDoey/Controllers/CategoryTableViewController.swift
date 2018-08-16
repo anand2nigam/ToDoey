@@ -13,27 +13,27 @@ class CategoryTableViewController: UITableViewController {
     
     let realm = try! Realm()
 
-    var categoryArray = [Category]()
+    var categoryArray: Results<Category>?
     
     let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-   //     loadCategories()
+        loadCategories()
 
     }
 
     // MARK:- TableView DataSource Methods
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return categoryArray.count
+        return categoryArray?.count ?? 1
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "CategoryCell", for: indexPath)
         
-        cell.textLabel?.text = categoryArray[indexPath.row].name
+        cell.textLabel?.text = categoryArray?[indexPath.row].name ?? "No Categories added yet"
         cell.accessoryType = .disclosureIndicator
         
         
@@ -51,7 +51,7 @@ class CategoryTableViewController: UITableViewController {
         let destiinationVC = segue.destination as! ToDoListTableViewController
         
         if let indexPath = tableView.indexPathForSelectedRow {
-            destiinationVC.selectedCategory = categoryArray[indexPath.row]
+            destiinationVC.selectedCategory = categoryArray?[indexPath.row]
         }
     }
     
@@ -70,7 +70,7 @@ class CategoryTableViewController: UITableViewController {
             
             newCategory.name = textField.text!
             
-            self.categoryArray.append(newCategory)
+            
             
             self.save(category: newCategory)
             
@@ -136,14 +136,12 @@ class CategoryTableViewController: UITableViewController {
     }
     
     // function to load the data from the database and then reflecting in the tableView
-//    func loadCategories(with request: NSFetchRequest<Category> = Category.fetchRequest()) {
-//
-//        do {
-//           categoryArray = try context.fetch(request)
-//        } catch {
-//            print("Error in loading data from the database:  \(error)")
-//        }
-//        tableView.reloadData()
-//    }
-//
+    func loadCategories() {
+
+        categoryArray = realm.objects(Category.self)
+        
+        
+        tableView.reloadData()
+    }
+
 }

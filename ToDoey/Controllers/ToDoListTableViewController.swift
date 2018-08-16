@@ -7,20 +7,21 @@
 //
 
 import UIKit
-import CoreData
+import RealmSwift
 
 class ToDoListTableViewController: UITableViewController {
 
-    var itemArray = [ Item ] ()
+    var itemArray: Results<Item>?
+    
+    let realm = try! Realm()
     
     var selectedCategory: Category? {
         didSet {
-       //     loadItems()
+            loadItems()
         }
     }
     
-     // to grab the viewContext of the app delegate class
-    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+
 
     
     override func viewDidLoad() {
@@ -43,7 +44,7 @@ class ToDoListTableViewController: UITableViewController {
     // MARK: - Table view data source Methods
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return itemArray.count
+        return itemArray?.count ?? 1
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -51,10 +52,15 @@ class ToDoListTableViewController: UITableViewController {
         // Using a reusable cell to display the cells in the table view
         let cell = tableView.dequeueReusableCell(withIdentifier: "ToDoListItemCell", for: indexPath)
         
-        cell.textLabel?.text = itemArray[indexPath.row].title
-        
-        // To put the checkmark and remove it accordingly
-        cell.accessoryType = itemArray[indexPath.row].done == true ? .checkmark : .none
+        if let items = itemArray?[indexPath.row] {
+            cell.textLabel?.text = items.title
+            
+            // To put the checkmark and remove it accordingly
+            cell.accessoryType = items.done == true ? .checkmark : .none
+        } else {
+            cell.textLabel?.text = "No cells added"
+        }
+      
         
         return cell
     }
@@ -64,9 +70,9 @@ class ToDoListTableViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         print(indexPath.row)
-        print(itemArray[indexPath.row])
+    //    print(itemArray[indexPath.row])
         
-         itemArray[indexPath.row].done = !itemArray[indexPath.row].done
+    //     itemArray[indexPath.row].done = !itemArray[indexPath.row].done
         
      //   saveItems()
         
@@ -92,14 +98,20 @@ class ToDoListTableViewController: UITableViewController {
             print("Success")
             print(textField.text!)
         
+            if let currentCategory = self.selectedCategory {
+                do {
+                    try self.realm.write {
+                          let newItem = Item()
+                        newItem.title = textField.text ?? "New Item"
+                        currentCategory.items.append(newItem)
+                    }
+                } catch {
+                    print("Error in saving data  \(error)")
+                }
+            }
             
-            let newItem = Item()
-            newItem.title = textField.text ?? "New Item"
-            newItem.done = false
-        //    newItem.parentCategory = self.selectedCategory
-            self.itemArray.append(newItem)
+          self.tableView.reloadData()
             
-        //    self.saveItems()
             
         }
         
@@ -153,36 +165,15 @@ class ToDoListTableViewController: UITableViewController {
     
     // MARK:- Data Manipulation Method
     
-//    func saveItems() {
-//
-//        do {
-//           try context.save()
-//        } catch {
-//          print("Unable to save the context \(error)")
-//        }
-//
-//        tableView.reloadData()
-//    }
     
     // method with a default value which can be called with the parameter or without the parameter
-//    func loadItems(with request: NSFetchRequest<Item> = Item.fetchRequest(), predicate: NSPredicate? = nil) {
-//
-//        let categoryPredicate = NSPredicate(format: "parentCategory.name MATCHES %@", selectedCategory!.name!)
-//
-//        if let additionalPredicate = predicate {
-//            request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [categoryPredicate , additionalPredicate])
-//        } else {
-//            request.predicate = categoryPredicate
-//        }
-//
-//        do {
-//            itemArray = try context.fetch(request)
-//        } catch {
-//            print("Error in loading data from persistent container \(error)")
-//        }
-//
-//        tableView.reloadData()
-//    }
+    func loadItems() {
+
+        itemArray = selectedCategory?.items.sorted(byKeyPath: "title", ascending: true)
+
+
+        tableView.reloadData()
+    }
 
 
 }
