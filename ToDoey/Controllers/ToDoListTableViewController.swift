@@ -70,11 +70,18 @@ class ToDoListTableViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         print(indexPath.row)
-    //    print(itemArray[indexPath.row])
         
-    //     itemArray[indexPath.row].done = !itemArray[indexPath.row].done
+        if let item = itemArray?[indexPath.row] {
+            do {
+                try realm.write {
+                    item.done = !item.done
+                }
+            } catch {
+                print("Error in updating data \(error)")
+            }
+        }
         
-     //   saveItems()
+        tableView.reloadData()
         
         // To deselect the row after its selection
         tableView.deselectRow(at: indexPath, animated: true)
@@ -139,28 +146,34 @@ class ToDoListTableViewController: UITableViewController {
     }
     
     
-//    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
-//        if editingStyle == .delete {
-//
-//            let alert = UIAlertController(title: "DELETE ???", message: "Are you sure you want to delete?", preferredStyle: .alert)
-//
-//            let deleteAction = UIAlertAction(title: "Delete", style: .default) { (deleteAlertAction) in
-//                self.context.delete(self.itemArray[indexPath.row])
-//                self.itemArray.remove(at: indexPath.row)
-//                self.tableView.deleteRows(at: [indexPath], with: .automatic)
-//                self.saveItems()
-//            }
-//
-//            let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
-//
-//            alert.addAction(deleteAction)
-//            alert.addAction(cancelAction)
-//
-//            present(alert, animated: true, completion: nil)
-//
-//
-//        }
-//    }
+    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
+        if editingStyle == .delete {
+
+            let alert = UIAlertController(title: "DELETE ???", message: "Are you sure you want to delete?", preferredStyle: .alert)
+
+            let deleteAction = UIAlertAction(title: "Delete", style: .default) { (deleteAlertAction) in
+                if let item = self.itemArray?[indexPath.row] {
+                    do {
+                        try self.realm.write {
+                            self.realm.delete(item)
+                            self.tableView.reloadData()
+                        }
+                    } catch {
+                        print("Error in saving data after deletion \(error)")
+                    }
+                }
+            }
+
+            let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
+
+            alert.addAction(deleteAction)
+            alert.addAction(cancelAction)
+
+            present(alert, animated: true, completion: nil)
+
+
+        }
+    }
     
     
     // MARK:- Data Manipulation Method

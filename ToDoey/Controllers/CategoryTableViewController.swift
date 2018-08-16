@@ -99,27 +99,33 @@ class CategoryTableViewController: UITableViewController {
         return .delete
     }
     
-//    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
-//        if editingStyle == .delete {
-//            
-//            // To present an alert before deleting the row from the database and the tableview
-//            let alert = UIAlertController(title: "DELETE???", message: "Are you sure you want to delete", preferredStyle: .alert)
-//            
-//            let deleteAction = UIAlertAction(title: "Delete", style: .default) { (deleteAlertAction) in
-//                self.context.delete(self.categoryArray[indexPath.row])
-//                self.categoryArray.remove(at: indexPath.row)
-//                self.tableView.deleteRows(at: [indexPath], with: .automatic)
-//                self.saveCategories()
-//            }
-//            
-//            let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
-//
-//            alert.addAction(deleteAction)
-//            alert.addAction(cancelAction)
-//            
-//            present(alert, animated: true, completion: nil)
-//        }
-//    }
+    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
+        if editingStyle == .delete {
+            
+            // To present an alert before deleting the row from the database and the tableview
+            let alert = UIAlertController(title: "DELETE???", message: "Are you sure you want to delete", preferredStyle: .alert)
+            
+            let deleteAction = UIAlertAction(title: "Delete", style: .default) { (deleteAlertAction) in
+                if let category = self.categoryArray?[indexPath.row] {
+                    do {
+                        try self.realm.write {
+                            self.realm.delete(category)
+                            tableView.reloadData()
+                        }
+                    } catch {
+                        print("Error saving data after deletion  \(error)")
+                    }
+                }
+            }
+            
+            let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
+
+            alert.addAction(deleteAction)
+            alert.addAction(cancelAction)
+            
+            present(alert, animated: true, completion: nil)
+        }
+    }
     
     // MARK:- Data Manipulation Methods
     
