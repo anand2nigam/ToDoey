@@ -110,6 +110,7 @@ class ToDoListTableViewController: UITableViewController {
                     try self.realm.write {
                           let newItem = Item()
                         newItem.title = textField.text ?? "New Item"
+                        newItem.dateCreated = Date()
                         currentCategory.items.append(newItem)
                     }
                 } catch {
@@ -196,38 +197,26 @@ class ToDoListTableViewController: UITableViewController {
 
 // MARK: Search bar Methods
 
-//extension ToDoListTableViewController: UISearchBarDelegate {
-//
-//    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-//
-//        // Request to fetch the Item result from the database
-//        let request: NSFetchRequest<Item> = Item.fetchRequest()
-//
-//        // to specify how data should be fetched from the database
-//        // [cd] is used to make the search case and diacritic insensitive
-//        let predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
-//
-//        // to sort the data received from database on query accordingly
-//        let sortDescriptor = NSSortDescriptor(key: "title", ascending: true)
-//
-//        // to add this to the request
-//        request.sortDescriptors = [sortDescriptor]
-//
-//        loadItems(with: request, predicate: predicate)
-//
-//
-//    }
-//
-//    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-//        if searchBar.text?.count == 0 {
-//            loadItems()
-//
-//            DispatchQueue.main.async {
-//                 // to remove the cursor from the focus and dismiss the keyboard
-//                searchBar.resignFirstResponder()
-//            }
-//        }
-//    }
-//
-//
-//}
+extension ToDoListTableViewController: UISearchBarDelegate {
+
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+
+        itemArray = itemArray?.filter("title CONTAINS[cd] %@", searchBar.text!).sorted(byKeyPath: "dateCreated", ascending: true)
+
+        tableView.reloadData()
+
+    }
+
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        if searchBar.text?.count == 0 {
+            loadItems()
+
+            DispatchQueue.main.async {
+                 // to remove the cursor from the focus and dismiss the keyboard
+                searchBar.resignFirstResponder()
+            }
+        }
+    }
+
+
+}
