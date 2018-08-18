@@ -9,7 +9,7 @@
 import UIKit
 import RealmSwift
 
-class ToDoListTableViewController: UITableViewController {
+class ToDoListTableViewController: SwipeTableViewController {
 
     var itemArray: Results<Item>?
     
@@ -50,7 +50,7 @@ class ToDoListTableViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
         // Using a reusable cell to display the cells in the table view
-        let cell = tableView.dequeueReusableCell(withIdentifier: "ToDoListItemCell", for: indexPath)
+        let cell = super.tableView(tableView, cellForRowAt: indexPath)
         
         if let items = itemArray?[indexPath.row] {
             cell.textLabel?.text = items.title
@@ -142,40 +142,52 @@ class ToDoListTableViewController: UITableViewController {
     
     // MARK:-  Deletion of Data from Database and tableView
     
-    override func tableView(_ tableView: UITableView, editingStyleForRowAt indexPath: IndexPath) -> UITableViewCellEditingStyle {
-        return .delete
-    }
+//    override func tableView(_ tableView: UITableView, editingStyleForRowAt indexPath: IndexPath) -> UITableViewCellEditingStyle {
+//        return .delete
+//    }
+//    
+//    
+//    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
+//        if editingStyle == .delete {
+//
+//            let alert = UIAlertController(title: "DELETE ???", message: "Are you sure you want to delete?", preferredStyle: .alert)
+//
+//            let deleteAction = UIAlertAction(title: "Delete", style: .default) { (deleteAlertAction) in
+//                if let item = self.itemArray?[indexPath.row] {
+//                    do {
+//                        try self.realm.write {
+//                            self.realm.delete(item)
+//                            self.tableView.reloadData()
+//                        }
+//                    } catch {
+//                        print("Error in saving data after deletion \(error)")
+//                    }
+//                }
+//            }
+//
+//            let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
+//
+//            alert.addAction(deleteAction)
+//            alert.addAction(cancelAction)
+//
+//            present(alert, animated: true, completion: nil)
+//
+//
+//        }
+//    }
     
     
-    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
-        if editingStyle == .delete {
-
-            let alert = UIAlertController(title: "DELETE ???", message: "Are you sure you want to delete?", preferredStyle: .alert)
-
-            let deleteAction = UIAlertAction(title: "Delete", style: .default) { (deleteAlertAction) in
-                if let item = self.itemArray?[indexPath.row] {
-                    do {
-                        try self.realm.write {
-                            self.realm.delete(item)
-                            self.tableView.reloadData()
-                        }
-                    } catch {
-                        print("Error in saving data after deletion \(error)")
-                    }
+    override func updateModel(at indexPath: IndexPath) {
+        if let itemForDeletion = self.itemArray?[indexPath.row] {
+            do {
+                try self.realm.write {
+                    self.realm.delete(itemForDeletion)
                 }
+            } catch {
+                print("Error in deleting data from the database : \(error)")
             }
-
-            let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
-
-            alert.addAction(deleteAction)
-            alert.addAction(cancelAction)
-
-            present(alert, animated: true, completion: nil)
-
-
         }
     }
-    
     
     // MARK:- Data Manipulation Method
     

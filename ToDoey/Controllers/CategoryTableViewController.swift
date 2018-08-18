@@ -9,7 +9,8 @@
 import UIKit
 import RealmSwift
 
-class CategoryTableViewController: UITableViewController {
+
+class CategoryTableViewController: SwipeTableViewController {
     
     let realm = try! Realm()
 
@@ -31,10 +32,11 @@ class CategoryTableViewController: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "CategoryCell", for: indexPath)
+        let cell = super.tableView(tableView, cellForRowAt: indexPath)
         
         cell.textLabel?.text = categoryArray?[indexPath.row].name ?? "No Categories added yet"
         cell.accessoryType = .disclosureIndicator
+        
         
         
         return cell
@@ -95,35 +97,47 @@ class CategoryTableViewController: UITableViewController {
     
     // MARK:- Deletion from the Database and the TableView
     
-    override func tableView(_ tableView: UITableView, editingStyleForRowAt indexPath: IndexPath) -> UITableViewCellEditingStyle {
-        return .delete
-    }
+//    override func tableView(_ tableView: UITableView, editingStyleForRowAt indexPath: IndexPath) -> UITableViewCellEditingStyle {
+//        return .delete
+//    }
+//
+//    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
+//        if editingStyle == .delete {
+//
+//            // To present an alert before deleting the row from the database and the tableview
+//            let alert = UIAlertController(title: "DELETE???", message: "Are you sure you want to delete", preferredStyle: .alert)
+//
+//            let deleteAction = UIAlertAction(title: "Delete", style: .default) { (deleteAlertAction) in
+//                if let category = self.categoryArray?[indexPath.row] {
+//                    do {
+//                        try self.realm.write {
+//                            self.realm.delete(category)
+//                            tableView.reloadData()
+//                        }
+//                    } catch {
+//                        print("Error saving data after deletion  \(error)")
+//                    }
+//                }
+//            }
+//
+//            let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
+//
+//            alert.addAction(deleteAction)
+//            alert.addAction(cancelAction)
+//
+//            present(alert, animated: true, completion: nil)
+//        }
+//    }
     
-    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
-        if editingStyle == .delete {
-            
-            // To present an alert before deleting the row from the database and the tableview
-            let alert = UIAlertController(title: "DELETE???", message: "Are you sure you want to delete", preferredStyle: .alert)
-            
-            let deleteAction = UIAlertAction(title: "Delete", style: .default) { (deleteAlertAction) in
-                if let category = self.categoryArray?[indexPath.row] {
-                    do {
-                        try self.realm.write {
-                            self.realm.delete(category)
-                            tableView.reloadData()
-                        }
-                    } catch {
-                        print("Error saving data after deletion  \(error)")
-                    }
+    override func updateModel(at indexPath: IndexPath) {
+        if let categoryForDeletion = self.categoryArray?[indexPath.row] {
+            do {
+                try self.realm.write {
+                    self.realm.delete(categoryForDeletion)
                 }
+            } catch {
+                print("Error Deleting category:- \(error)")
             }
-            
-            let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
-
-            alert.addAction(deleteAction)
-            alert.addAction(cancelAction)
-            
-            present(alert, animated: true, completion: nil)
         }
     }
     
@@ -151,3 +165,4 @@ class CategoryTableViewController: UITableViewController {
     }
 
 }
+
